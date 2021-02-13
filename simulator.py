@@ -13,13 +13,24 @@ initial_P = 200
 max_pressure = initial_P / 2
 min_presure = -initial_P / 2 
 
-def generate_random_map(size):
-    result = random_shapes(size, 
+def generate_random_map(map_size, random_seed):
+    """Randomly generate an array of zeros (free media) and ones (obstacles). 
+    The obstacles have basic geometric shapes.
+
+    Parameters:
+        map_size(tuple): shape of the map to generate
+        random_seed (int): random seed for random generation of obstacles
+    Returns:
+        random_map (np.array): array shaped as map_size, containing random 
+                               obstacles. 
+    """
+    result = random_shapes(map_size, 
                         intensity_range=(0,0), 
                         min_size = 8, 
                         max_size= 15, 
                         min_shapes=2, 
                         max_shapes=10, 
+                        random_seed=random_seed,
                         multichannel=False, 
                         allow_overlap=False)
     # result is a tuple consisting of 
@@ -27,8 +38,12 @@ def generate_random_map(size):
     # # (2) a list of label tuples with the kind of shape 
     # (e.g. circle, rectangle) and ((r0, r1), (c0, c1)) coordinates.
     obstacle_map, labels = result
-    obstacle_map[40:61,40:61] = 255
+    # Force free media in a square of 20x20 at the center of the map
+    width_center = map_size[0]//2; length_center = map_size[1]//2
+    obstacle_map[width_center-20:width_center+21,
+                length_center-20:length_center+21] = 255
     free_media = (obstacle_map == 255)
+    # Obstacles = 1, free media = 0
     obstacles = (obstacle_map == 0)
     obstacle_map[free_media] = 0
     obstacle_map[obstacles] = 1
@@ -78,7 +93,7 @@ class SoundSimulator:
 
 
     def updateV(self):
-        """Update velocity field based on Komatsuzaki's transition rules."""
+        """Update the velocity field based on Komatsuzaki's transition rules."""
         V = self._velocities
         P = self.pressure
         for i, j in itertools.product(range(self.size_y), range(self.size_x)):
@@ -96,11 +111,12 @@ class SoundSimulator:
                                     if j > 0 else cell_pressure
 
     def updateP(self):
-        """Update pressure field based on Komatsuzaki's transition rules."""
+        """Update the pressure field based on Komatsuzaki's transition rules."""
         for i, j in itertools.product(range(self.size_y), range(self.size_x)):
             self.pressure[i,j] -= ca2 * damping * sum(self._velocities[i,j])
 
     def step(self):
+        """Perform a simulation step, upadting the wind an pressure fields."""
         self.pressure[self.s_y,self.s_x] = initial_P\
              * sin(self.omega * self.iteration)
         self.updateV()
@@ -108,19 +124,23 @@ class SoundSimulator:
         self.iteration += 1
 
     def spl(self, integration_interval=200):
-        """ Compute sound pressure level map.
-        
+        """ Compute the sound pressure level map.
+        https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
+
         Parameters:
             integration_interval (int): interval over which the rms pressure 
-                        is computed.
+                                        is computed, starting from the last 
+                                        simulation iteration backwards.
         Returns:
             spl (np.array): map of sound pressure level (dB).
         """
         p0 = 20*10e-6 # Pa
         if integration_interval > self.pressure_hist.shape[0]:
             integration_interval = self.pressure_hist.shape[0]
-        rms_p = np.sqrt(np.mean(np.square(self.pressure_hist[-integration_interval:-1]),
-                                axis=0))
+        rms_p = np.sqrt(np.mean(
+                    np.square(self.pressure_hist[-integration_interval:-1]),
+                              axis=0)
+                )
         return 20*np.log10(rms_p/p0)
 
     def run(self):
