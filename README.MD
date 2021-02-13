@@ -7,10 +7,10 @@ It complements Alexander3's [implementation] and relies on the [work] of *T. Kom
 
 The current project is implemented in *python* 3.7 and requires the following dependencies:
 
-* ~click~: for creating a command line interface
-* ~joblib~: for CPU parallel computing 
-* ~tqdm~: for tracking the simulation loop through a nice progress bar
-* ~scikit-image~: for generating random obstacles in the field 
+* *click*: for creating a command line interface
+* *joblib*: for CPU parallel computing 
+* *tqdm*: for tracking the simulation loop through a nice progress bar
+* *scikit-image*: for generating random obstacles in the field 
 
 #### Installation with Conda
 
