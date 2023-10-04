@@ -9,40 +9,76 @@ The current project is implemented in *python* 3.7 and requires the following de
 
 * *click*: for creating a command line interface
 * *joblib*: for CPU parallel computing 
-* *tqdm*: for tracking the simulation loop through a nice progress bar
 * *scikit-image*: for generating random obstacles in the field 
 
-#### Installation with Conda
-
 ```sh
-conda install click joblib tqdm scikit-image
+pip install click joblib scikit-image
+```
+## Getting started
+
+First, let's start by generating a map with random obstacles. We prepared a random shape generator in the module `utils`.
+
+Note that the simulator works with any other binary matrix you provide.
+
+```python
+import matplotlib.pyplot as plt
+from simulator import generate_random_map
+
+# Generate random map of obstacle
+# Note that you can use any other binary map you want
+map_size = (100, 100)
+random_seed = 1
+obstacle_map = generate_random_map(map_size, random_seed=random_seed)
+
+# Plot generated map
+plt.pcolormesh(obstacle_map, cmap="gray")
+```
+<img src="./examples/obstacles_example1.png" style="display: block; margin-left: auto; margin-right: auto; width: 40%;"/>
+
+Now, we run the simulator for 200 time steps and compute the resulting sound pressure level map.  
+
+```python
+from simulator import SoundSimulator
+
+# Simulation
+duration = 200
+simulation = SoundSimulator(map_size=map_size, 
+                            obstacle_map=obstacle_map, 
+                            duration= duration)
+simulation.run()
+spl = simulation.spl(integration_interval=100)
 ```
 
-#### Installation with pip
+Finally, we display the obtained pressure field:
 
-```sh
-pip install click joblib tqdm scikit-image
+```python
+# Display the sound pressure level field
+fig, ax= plt.subplots(nrows=1, ncols=1, figsize=(8,4), sharey=True)
+spl_plt = ax.pcolormesh(spl, cmap="coolwarm")
+plt.colorbar(spl_plt, ax=ax)
+ax.set_title("Sound Pressure Level (dB)")
+fig.tight_layout()
 ```
-    
+<img src="./examples/spl_example1.png" style="display: block; margin-left: auto; margin-right: auto; width: 40%;"/>
 
-## How to use
+## How to use the CLI
 
 * To run 10 random simulations lasting each 200 iterations and saving the results in the current directory, run the following line:
 
 ```sh
-python simulate.py -n 10 -d 200 -p .
+python -m src.simulate -n 10 -d 200 -p .
 ```
 
 * The result of each simulation is stored separately in a file named `example_x.pickle`. 
-One can load and visualize the results by running `load_n_viz.py`:
+One can load and visualize the results by running `src.load_n_viz`.
 
-
-<img src="./examples/spl_example2.png" style="display: block; margin-left: auto; margin-right: auto; width: 40%;"/>
-
+```sh
+python -m src.load_n_viz
+```
 * For additional details about the arguments, a help page can be displayed:
 
 ```sh
-python simulate.py --help
+python -m src.simulate --help
 ```
 
 
