@@ -1,7 +1,7 @@
 # Sound wave simulation
 
-This project provides a ready-to-use **simulator** of  **acoustic wave propagation** in a field including sound **obstacles**. 
-It complements Alexander3's [implementation] and relies on the [work] of *T. Komatsuzaki et al.*.
+This project provides a ready-to-use **simulator** of  **acoustic wave propagation** in a field including sound **obstacles**, based on **cellular automata**. 
+Lightweight and fast, it complements Alexander3's [implementation] and relies on the [work] of *T. Komatsuzaki et al.*.
 
 ## Installation
 
